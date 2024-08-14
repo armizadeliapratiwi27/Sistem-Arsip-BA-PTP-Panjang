@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Home</title>
+    <link rel="stylesheet" href="style4.css">
+</head>
+<body>
+    <header>
+        <div class="left-side">
+            <div class="profile-menu">
+                <a href="profile.html" class="profile-link">
+                    <img src="logoprofile.png" alt="Profile Picture" class="profile-pic">
+                </a>
+                <span id="usernameText" class="username-text"></span>
+                <div class="menu-item">
+                    <img src="iconfile.png" alt="File Logo" class="menu-logo">
+                    <label for="arsipberkas" class="menu-label">Arsip Berkas</label>
+                </div>
+                <a href="input.html" class="nav-link box">Upload Berkas</a>
+                <div class="menu-item">
+                    <img src="iconearsip.png" alt="File Logo" class="menu-logo">
+                    <label for="filearsip" class="menu-label">Manajement File</label>
+                </div>
+                <a href="filearsip.html" class="nav-link box">File Arsip</a>
+            </div>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+        <div class="right-side">
+            <img src="logopelindo.png" alt="Logo Pelindo" class="logo">
+            <main>
+                <div class="welcome-container">
+                    <h1>WELCOME TO</h1>
+                    <h2>Sistem Arsip Berita Acara</h2>
+                    <img src="logofile.png" alt="File" class="file-image">
+                </div>
+            </main>
+        </div>
+    </header>
+
+    <footer class="footer">
+         &copy; Copyright PTP Panjang 2024
+    </footer>
+
+    <script>
+        function logout() {
+            sessionStorage.removeItem('loggedInUser');
+            window.location.href = 'login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            if (user) {
+                document.getElementById('displayName').textContent = user.name;
+                document.getElementById('displayUsername').textContent = user.username;
+                document.getElementById('displayEmail').textContent = user.email;
+                document.getElementById('displayNip').textContent = user.nip;
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            if (!loggedInUser) {
+                window.location.href = 'login.html';
+            } else {
+                const usernameText = document.getElementById('usernameText');
+                if (usernameText) {
+                    usernameText.textContent = loggedInUser.username; // Sesuaikan dengan properti yang berisi username
+                }
+            }
+        });
+    </script>
+</body>
+</html>

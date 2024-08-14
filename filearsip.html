@@ -1,0 +1,485 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Arsip</title>
+    <link rel="stylesheet" href="style5.css">
+    <body>
+    <div class="container">
+        <div class="left-side">
+            <a href="profile.html" class="profile-link">
+                <img src="logoprofile.png" alt="Logo" class="logo">
+            </a>
+            <span id="usernameText" class="username-text"></span>
+            <div class="menu-item">
+                <img src="iconearsip.png" alt="File Logo" class="menu-logo">
+                <label for="arsipberkas" class="menu-label">Manajement File</label>
+            </div>
+            <button class="button" onclick="location.href='filearsip.html'">File Arsip</button>
+            <a href="home.html" class="nav-link back-button">Back</a>
+        </div>
+        <div class="right-side">
+            <img src="logopelindo.png" alt="Pelindo Logo" class="pelindo-logo">
+            <div class="search-add-wrapper">
+                <input type="text" class="search-bar" id="searchBar" placeholder="Search...">
+                <a href="input.html"><button class="add-button">Tambah Data</button></a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Penginput</th>
+                        <th>No BA</th>
+                        <th>Nama Kapal</th>
+                        <th>Tanggal Pranota</th>
+                        <th>Tertagih</th>
+                        <th>Berkas</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable">
+                    <!-- Data akan ditambahkan di sini -->
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button id="prevPage" class="pagination-button">Previous</button>
+                <span id="pageInfo" class="pagination-info"></span>
+                <button id="nextPage" class="pagination-button">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal" enctype="multipart/form-modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>EDIT DATA</h2>
+            <form id="editForm">
+                <input type="hidden" id="editTimestamp">
+                <label for="editUsername">Nama Penginput:</label>
+                <input type="text" id="editUsername"><br><br>
+                <label for="editNoBa">No BA:</label>
+                <input type="text" id="editNoBa"><br><br>
+                <label for="editNamaKapal">Nama Kapal:</label>
+                <input type="text" id="editNamaKapal"><br><br>
+                <label for="editTanggalPranota">Tanggal Pranota:</label>
+                <input type="date" id="editTanggalPranota"><br><br>
+                <label for="editTertagih">Tertagih:</label>
+                <input type="text" id="editTertagih"><br><br>
+                <label for="editBerkasUrl">Berkas URL:</label>
+                <input type="text" id="editBerkasUrl"><br><br>
+                <div class="form-group">  
+                <label for="berkas" class="upload-label">Upload File:</label>
+                <div class="file-input-style">
+                <input type="file" id="berkas" name="berkas" accept=".pdf">
+                </div>
+                </div>
+                <div class="modal-save">
+                    <button type="button" onclick="saveEdit()" class="save-button">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; Copyright PTP Panjang 2024
+    </footer>
+    
+    <script>
+        function saveEdit() {
+            // Get the edited values
+            const timestamp = document.getElementById('editTimestamp').value;
+            const username = document.getElementById('editUsername').value;
+            const noBa = document.getElementById('editNoBa').value;
+            const namaKapal = document.getElementById('editNamaKapal').value;
+            const tanggalPranota = document.getElementById('editTanggalPranota').value;
+            const tertagih = document.getElementById('editTertagih').value;
+            const berkasUrl = document.getElementById('editBerkasUrl').value;
+
+            // Update the data in localStorage
+            let dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+            const index = dataArsip.findIndex(item => item.timestamp == timestamp);
+            if (index !== -1) {
+                dataArsip[index] = {
+                    timestamp,
+                    username,
+                    noBa,
+                    namaKapal,
+                    tanggalPranota,
+                    tertagih,
+                    berkasUrl
+                };
+                localStorage.setItem('dataArsip', JSON.stringify(dataArsip));
+            }
+
+            // Update the table on the page
+            const row = document.getElementById(`row-${timestamp}`);
+            if (row) {
+                row.innerHTML = `
+                    <td>${row.cells[0].innerHTML}</td>
+                    <td>${username}</td>
+                    <td>${noBa}</td>
+                    <td>${namaKapal}</td>
+                    <td>${tanggalPranota}</td>
+                    <td>${tertagih}</td>
+                    <td><a href="${berkasUrl}" class="download-button" download="${noBa}.pdf">Download</a></td>
+                    <td class="action-buttons">
+                        <button class="edit-button" onclick="editRow('row-${timestamp}')">Ubah</button>
+                        <button class="delete-button" onclick="deleteRow('row-${timestamp}')">Hapus</button>
+                    </td>
+                `;
+            }
+
+            // Close the modal
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'none';
+        }
+    </script>   
+
+    <script>
+       document.addEventListener('DOMContentLoaded', () => {
+        const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+        if (!loggedInUser) {
+            window.location.href = 'login.html';
+        } else {
+            const usernameText = document.getElementById('usernameText');
+            if (usernameText) {
+                usernameText.textContent = loggedInUser.username;
+            }
+        }
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        const dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+        const dataTable = document.getElementById('dataTable');
+
+        function renderTable() {
+            dataTable.innerHTML = '';
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = Math.min(start + itemsPerPage, dataArsip.length);
+            const paginatedData = dataArsip.slice(start, end);
+
+            paginatedData.forEach((data, index) => {
+                const rowId = `row-${data.timestamp}`;
+                const row = document.createElement('tr');
+                row.id = rowId;
+                row.innerHTML = `
+                    <td>${start + index + 1}</td>
+                    <td>${data.username}</td>
+                    <td>${data.noBa}</td>
+                    <td>${data.namaKapal}</td>
+                    <td>${data.tanggalPranota}</td>
+                    <td>${data.tertagih}</td>
+                    <td><a href="${data.berkasUrl}" class="download-button" download="${data.noBa}.pdf">Download</a></td>
+                    <td class="action-buttons">
+                        <button class="edit-button" onclick="editRow('${rowId}')">Ubah</button>
+                        <button class="delete-button" onclick="deleteRow('${rowId}')">Hapus</button>
+                    </td>
+                `;
+                dataTable.appendChild(row);
+            });
+
+            updatePaginationControls();
+        }
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(dataArsip.length / itemsPerPage);
+            const pageInfo = document.getElementById('pageInfo');
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const totalPages = Math.ceil(dataArsip.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+
+        renderTable(); // Initial render
+
+        document.getElementById('searchBar').addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = dataTable.getElementsByTagName('tr');
+            Array.from(rows).forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                Array.from(cells).forEach(cell => {
+                    if (cell.textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                    }
+                });
+                row.style.display = found ? '' : 'none';
+            });
+        });
+
+        const modal = document.getElementById("editModal");
+        const span = document.getElementsByClassName("close")[0];
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // File input change event handler
+        document.getElementById('berkas').addEventListener('change', function() {
+            const fileNameLabel = document.getElementById('fileNameLabel');
+            const fileInput = document.getElementById('berkas');
+            
+            if (fileInput.files.length > 0) {
+                fileNameLabel.textContent = fileInput.files[0].name;
+            } else {
+                fileNameLabel.textContent = 'No file chosen';
+            }
+        });
+    });
+
+    function editRow(rowId) {
+        const dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+        const row = document.getElementById(rowId);
+        const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+        const data = dataArsip[rowIndex];
+
+        document.getElementById('editTimestamp').value = data.timestamp;
+        document.getElementById('editUsername').value = data.username;
+        document.getElementById('editNoBa').value = data.noBa;
+        document.getElementById('editNamaKapal').value = data.namaKapal;
+        document.getElementById('editTanggalPranota').value = data.tanggalPranota;
+        document.getElementById('editTertagih').value = data.tertagih;
+        document.getElementById('editBerkasUrl').value = data.berkasUrl;
+
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function saveEdit() {
+        const timestamp = document.getElementById('editTimestamp').value;
+        const username = document.getElementById('editUsername').value;
+        const noBa = document.getElementById('editNoBa').value;
+        const namaKapal = document.getElementById('editNamaKapal').value;
+        const tanggalPranota = document.getElementById('editTanggalPranota').value;
+        const tertagih = document.getElementById('editTertagih').value;
+        const berkasUrl = document.getElementById('editBerkasUrl').value;
+
+        const fileInput = document.getElementById('berkas');
+        const file = fileInput.files[0];
+        let newBerkasUrl = berkasUrl;
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('upload_endpoint', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    newBerkasUrl = data.fileUrl;
+                    updateData(newBerkasUrl);
+                    alert('Data berhasil diperbarui!');
+                } else {
+                    alert('Terjadi kesalahan saat memperbarui data.');
+                }
+            })
+            .catch(error => console.error('Error uploading file:', error));
+        } else {
+            updateData(newBerkasUrl);
+        }
+
+        function updateData(newBerkasUrl) {
+            let dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+            dataArsip = dataArsip.map(data => {
+                if (data.timestamp == timestamp) {
+                    return {
+                        ...data,
+                        username,
+                        noBa,
+                        namaKapal,
+                        tanggalPranota,
+                        tertagih,
+                        berkasUrl: newBerkasUrl
+                    };
+                }
+                return data;
+            });
+
+            localStorage.setItem('dataArsip', JSON.stringify(dataArsip));
+            renderTable();
+            document.getElementById('editModal').style.display = 'none';
+        }
+    }
+
+    function deleteRow(rowId) {
+        if (confirm('Are you sure you want to delete this item?')) {
+            const row = document.getElementById(rowId);
+            row.parentNode.removeChild(row);
+
+            let dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+            dataArsip = dataArsip.filter(data => `row-${data.timestamp}` !== rowId);
+            localStorage.setItem('dataArsip', JSON.stringify(dataArsip));
+
+            renderTable(); // Render ulang tabel untuk memperbarui nomor baris
+        }
+    }
+    </script>
+        <script>
+            // ... (existing JavaScript code)
+    
+            function saveEditedData() {
+                const editForm = document.getElementById('editForm');
+                const editedNamaFile = editForm.querySelector('#editNamaFile').value;
+                const editedTanggalUpload = editForm.querySelector('#editTanggalUpload').value;
+                const editedKeterangan = editForm.querySelector('#editKeterangan').value;
+    
+                const editedRow = document.querySelector('[data-edit-id]');
+                if (editedRow) {
+                    editedRow.cells[1].textContent = editedNamaFile;
+                    editedRow.cells[2].textContent = editedTanggalUpload;
+                    editedRow.cells[3].textContent = editedKeterangan;
+    
+                    // Close the popup
+                    document.getElementById('editPopup').style.display = 'none';
+    
+                    // Remove the data-edit-id attribute
+                    editedRow.removeAttribute('data-edit-id');
+                }
+            }
+    
+            document.addEventListener('DOMContentLoaded', () => {
+                // ... (existing event listeners)
+    
+                const saveButton = document.querySelector('#editPopup .save-button');
+                saveButton.addEventListener('click', saveEditedData);
+            });
+            
+            function updateRowNumbers() {
+                const rows = document.querySelectorAll('#dataTable tr');
+                rows.forEach((row, index) => {
+                    const numberCell = row.querySelector('td:first-child');
+                    if (numberCell) {
+                        numberCell.textContent = index + 1;
+                    }
+                });
+            }
+    
+            document.addEventListener('DOMContentLoaded', () => {
+                const dataTable = document.getElementById('dataTable');
+                dataTable.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('delete-button')) {
+                        event.target.closest('tr').remove();
+                        updateRowNumbers();
+                    }
+                });
+            });
+
+        function saveEdit() {
+            // Get the edited values
+            const timestamp = document.getElementById('editTimestamp').value;
+            const username = document.getElementById('editUsername').value;
+            const noBa = document.getElementById('editNoBa').value;
+            const namaKapal = document.getElementById('editNamaKapal').value;
+            const tanggalPranota = document.getElementById('editTanggalPranota').value;
+            const tertagih = document.getElementById('editTertagih').value;
+            const berkasUrl = document.getElementById('editBerkasUrl').value;
+
+            const fileInput = document.getElementById('berkas');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('upload_endpoint', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateData(data.fileUrl);
+                        alert('Data berhasil diperbarui!');
+                    } else {
+                        alert('Terjadi kesalahan saat memperbarui data.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                    alert('Terjadi kesalahan saat mengunggah file.');
+                });
+            } else {
+                updateData(berkasUrl);
+            }
+
+            function updateData(newBerkasUrl) {
+                // Update the data in localStorage
+                let dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+                const index = dataArsip.findIndex(item => item.timestamp == timestamp);
+                if (index !== -1) {
+                    dataArsip[index] = {
+                        timestamp,
+                        username,
+                        noBa,
+                        namaKapal,
+                        tanggalPranota,
+                        tertagih,
+                        berkasUrl: newBerkasUrl
+                    };
+                    localStorage.setItem('dataArsip', JSON.stringify(dataArsip));
+                }
+
+                // Update the table on the page
+                const row = document.getElementById(`row-${timestamp}`);
+                if (row) {
+                    row.innerHTML = `
+                        <td>${row.cells[0].innerHTML}</td>
+                        <td>${username}</td>
+                        <td>${noBa}</td>
+                        <td>${namaKapal}</td>
+                        <td>${tanggalPranota}</td>
+                        <td>${tertagih}</td>
+                        <td><a href="${newBerkasUrl}" class="download-button" download="${noBa}.pdf">Download</a></td>
+                        <td class="action-buttons">
+                            <button class="edit-button" onclick="editRow('row-${timestamp}')">Ubah</button>
+                            <button class="delete-button" onclick="deleteRow('row-${timestamp}')">Hapus</button>
+                        </td>
+                    `;
+                }
+
+                // Close the modal
+                const modal = document.getElementById('editModal');
+                modal.style.display = 'none';
+
+                // Refresh the table
+                renderTable();
+            }
+        }
+
+        // Add event listener to the save button
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveButton = document.querySelector('.save-button');
+            if (saveButton) {
+                saveButton.addEventListener('click', saveEdit);
+            }
+        });
+        </script>
+    </body>
+</html>

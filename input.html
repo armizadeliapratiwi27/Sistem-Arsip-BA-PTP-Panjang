@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data Arsip</title>
+    <link rel="stylesheet" href="style5.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-side">
+            <a href="profile.html" class="profile-link">
+                <img src="logoprofile.png" alt="Logo" class="logo">
+            </a>
+            <span id="usernameText" class="username-text"></span>
+            <div class="hamburger-menu">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div class="menu-item">
+                    <img src="iconfile.png" alt="File Logo" class="menu-logo">
+                    <label for="arsipberkas" class="menu-label">Arsip Berkas</label>
+                </div>
+            </div>
+            <button class="button" onclick="location.href='input.html'">Arsip Berkas</button>
+            <a href="home.html" class="nav-link back-button">Back</a>
+        </div>
+        
+        <div class="right-side">
+            <img src="logopelindo.png" alt="Pelindo Logo" class="pelindo-logo">
+            <h2>Input Data Arsip</h2>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label for="namaPenginput">Nama Penginput:</label>
+                    <input type="text" id="namaPenginput" name="namaPenginput" required>
+                </div>
+                <div class="form-group">
+                    <label for="noBa">No BA:</label>
+                    <input type="text" id="noBa" name="noBa" required>
+                </div>
+                <div class="form-group">
+                    <label for="namaKapal">Nama Kapal:</label>
+                    <input type="text" id="namaKapal" name="namaKapal" required>
+                </div>
+                <div class="form-group">
+                    <label for="tanggalPranota">Tanggal Pranota:</label>
+                    <input type="date" id="tanggalPranota" name="tanggalPranota" required>
+                </div>
+                <div class="form-group">
+                    <label for="tertagih">Tertagih:</label>
+                    <input type="text" id="tertagih" name="tertagih" required>
+                </div>
+                <div class="form-group">
+                    <label for="berkas">Berkas:</label>
+                    <input type="file" id="berkas" name="berkas" accept=".pdf" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="submitButton" class="submit-button">Submit</button>
+                    <button type="button" id="cancelButton" class="submit-button">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; Copyright PTP Panjang 2024
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            if (!loggedInUser) {
+                window.location.href = 'login.html';
+            } else {
+                const usernameText = document.getElementById('usernameText');
+                if (usernameText) {
+                    usernameText.textContent = loggedInUser.username;
+                }
+            }
+
+            document.getElementById('submitButton').addEventListener('click', () => {
+                const form = document.getElementById('dataForm');
+                
+                if (!form.checkValidity()) {
+                    alert('Please fill out all required fields.');
+                    return;
+                }
+
+                const formData = new FormData(form);
+                const file = formData.get('berkas');
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const dataArsip = JSON.parse(localStorage.getItem('dataArsip')) || [];
+                    const newData = {
+                        timestamp: new Date().getTime(),
+                        username: loggedInUser.username,
+                        namaPenginput: formData.get('namaPenginput'),
+                        noBa: formData.get('noBa'),
+                        namaKapal: formData.get('namaKapal'),
+                        tanggalPranota: formData.get('tanggalPranota'),
+                        tertagih: formData.get('tertagih'),
+                        berkasUrl: event.target.result
+                    };
+                    dataArsip.push(newData);
+                    localStorage.setItem('dataArsip', JSON.stringify(dataArsip));
+                    alert('Data berhasil disimpan.');
+                    window.location.href = 'filearsip.html';
+                };
+
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('cancelButton').addEventListener('click', () => {
+                document.getElementById('dataForm').reset();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="style3.css">
+</head>
+<body>
+    <div class="logo">
+        <img src="logopelindo.png" alt="Logo">
+    </div>
+    <div class="profile-container">
+        <div class="profile-box">
+            <div class="profile-header">
+                <div class="profile-pic">
+                    <img src="logoprofile.png" alt="Profile Picture" class="small-profile-pic">
+                </div>
+                <div class="profile-info">
+                    <h1 id="displayName"></h1>
+                </div>
+            </div>
+            <div class="profile-form">
+                <div class="profile-name">
+                    <p><span id="displayName"></span></p>
+                </div>
+                <p>Username: <span id="displayUsername"></span></p>
+                <p>Email: <span id="displayEmail"></span></p>
+                <p>NIP: <span id="displayNip"></span></p>
+            </div>
+            <div class="button-container">
+                <button class="back-button" onclick="goToLogin()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; Copyright PTP Panjang 2024
+    </footer>
+
+    <script>
+        function goToLogin() {
+            window.location.href = 'home.html'; 
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+            if (user) {
+                document.getElementById('displayName').textContent = user.name;
+                document.getElementById('displayUsername').textContent = user.username;
+                document.getElementById('displayEmail').textContent = user.email;
+                document.getElementById('displayNip').textContent = user.nip;
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>
